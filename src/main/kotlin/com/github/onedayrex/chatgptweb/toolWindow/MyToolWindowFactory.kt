@@ -32,8 +32,14 @@ class MyToolWindowFactory : ToolWindowFactory {
     override fun shouldBeAvailable(project: Project) = true
 
     class MyToolWindow(toolWindow: ToolWindow) {
+        val userId:String
         val chatToolWindows = ChatToolWindows()
         val client = OkHttpClient()
+
+        init {
+            userId = "#/chat/" + System.currentTimeMillis().toString()
+        }
+
         fun getContent() = JBPanel<JBPanel<*>>().apply {
             var keyDownListener = object : KeyListener{
                 override fun keyTyped(e: KeyEvent?) {
@@ -47,6 +53,7 @@ class MyToolWindowFactory : ToolWindowFactory {
                         param.addProperty("prompt", chatToolWindows.questionText.text)
                         param.addProperty("stream", false)
                         param.addProperty("system","")
+                        param.addProperty("userId", userId)
                         param.addProperty("withoutContext", false)
 
                         val requestBody =
@@ -55,6 +62,7 @@ class MyToolWindowFactory : ToolWindowFactory {
                         val request = Request.Builder()
                             .url("https://api.binjie.fun/api/generateStream?refer__1360=n4mx0DnDuGKeqD5G%3DtDsIfqCwT4fxh0T3ebrD")
                             .post(requestBody)
+                            .header("Origin","https://chat18.aichatos8.xyz")
                             .build()
 
                         client.newCall(request).enqueue(object:Callback {
@@ -63,7 +71,16 @@ class MyToolWindowFactory : ToolWindowFactory {
                             }
 
                             override fun onResponse(call: Call, response: Response) {
-                                println(response.body?.string())
+                                chatToolWindows.response.text = ""
+                                val body = response.body!!
+                                var steam = body.byteStream()
+                                val buffer = ByteArray(1024)
+                                var byteRead:Int
+                                var sb = StringBuilder()
+                                while (steam.read(buffer).also { byteRead = it } !=-1){
+                                    sb.append(buffer.decodeToString(0,byteRead))
+                                    chatToolWindows.response.text = sb.toString()
+                                }
                             }
 
                         })
