@@ -4,17 +4,19 @@ import com.github.onedayrex.chatgptweb.ui.ChatToolWindows
 import com.google.gson.JsonObject
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vcs.changes.ui.HoverChangesTree.Companion.getTransparentScrollbarWidth
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.content.ContentFactory
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import java.awt.event.KeyAdapter
+import org.jetbrains.io.response
+import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.io.IOException
+import javax.swing.JPanel
+import javax.swing.JTextField
 
 
 class MyToolWindowFactory : ToolWindowFactory {
@@ -48,6 +50,13 @@ class MyToolWindowFactory : ToolWindowFactory {
                 override fun keyPressed(e: KeyEvent?) {
                     if (e?.keyCode == KeyEvent.VK_ENTER) {
                         //http
+                        chatToolWindows.questionText.text = ""
+//                        chatToolWindows.questionText.isEditable = false
+                        var responsePanel = JPanel()
+                        responsePanel.layout = BorderLayout()
+                        val responseText = JTextField("loading...")
+                        responsePanel.add(responseText,BorderLayout.CENTER)
+                        chatToolWindows.jScrollPane.setViewportView(responsePanel)
                         val param = JsonObject()
                         param.addProperty("network",true)
                         param.addProperty("prompt", chatToolWindows.questionText.text)
@@ -65,25 +74,28 @@ class MyToolWindowFactory : ToolWindowFactory {
                             .header("Origin","https://chat18.aichatos8.xyz")
                             .build()
 
-                        client.newCall(request).enqueue(object:Callback {
-                            override fun onFailure(call: Call, e: IOException) {
-                                println(e.toString())
-                            }
-
-                            override fun onResponse(call: Call, response: Response) {
-                                chatToolWindows.response.text = ""
-                                val body = response.body!!
-                                var steam = body.byteStream()
-                                val buffer = ByteArray(1024)
-                                var byteRead:Int
-                                var sb = StringBuilder()
-                                while (steam.read(buffer).also { byteRead = it } !=-1){
-                                    sb.append(buffer.decodeToString(0,byteRead))
-                                    chatToolWindows.response.text = sb.toString()
-                                }
-                            }
-
-                        })
+//                        client.newCall(request).enqueue(object:Callback {
+//                            override fun onFailure(call: Call, e: IOException) {
+//                                chatToolWindows.questionText.isEditable = true
+//                                println(e.toString())
+//                            }
+//
+//                            override fun onResponse(call: Call, response: Response) {
+//                                val body = response.body!!
+//                                var steam = body.byteStream()
+//                                val buffer = ByteArray(1024)
+//                                var byteRead:Int
+//                                var sb = StringBuilder()
+//                                while (steam.read(buffer).also { byteRead = it } !=-1){
+//                                    val decodeToString = buffer.decodeToString(0, byteRead)
+//                                    sb.append(decodeToString)
+//                                    print(decodeToString)
+////                                    chatToolWindows.response.text = sb.toString()
+//                                }
+//                                chatToolWindows.questionText.isEditable = true
+//                            }
+//
+//                        })
                     }
                 }
 
@@ -91,8 +103,9 @@ class MyToolWindowFactory : ToolWindowFactory {
                 }
 
             }
+            layout = BorderLayout()
             chatToolWindows.questionText.addKeyListener(keyDownListener)
-            add(chatToolWindows.panel1)
+            add(chatToolWindows.panel)
         }
     }
 }

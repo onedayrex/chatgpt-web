@@ -1,21 +1,38 @@
 package com.github.onedayrex.chatgptweb.ui;
 
+import com.intellij.ui.components.JBTextArea;
+
 import javax.swing.*;
+import java.awt.*;
 
-public class ChatToolWindows {
-    private JTextPane response;
-    private JPanel panel1;
-    private JTextField questionText;
+public class ChatToolWindows extends JFrame {
+    private JScrollPane jScrollPane;
+    private JPanel panel;
+    private JTextArea questionText;
 
-    public JTextPane getResponse() {
-        return response;
+    public JScrollPane getJScrollPane() {
+        return jScrollPane;
     }
 
-    public JPanel getPanel1() {
-        return panel1;
+    public JPanel getPanel() {
+        return panel;
     }
 
-    public JTextField getQuestionText() {
+    public JTextArea getQuestionText() {
         return questionText;
+    }
+
+    public ChatToolWindows() {
+        panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        jScrollPane = new JScrollPane();
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BorderLayout());
+        questionText = new JTextArea();
+        questionText.setBorder(BorderFactory.createTitledBorder("Input"));
+        textPanel.add(questionText, BorderLayout.CENTER);
+
+        panel.add(jScrollPane, BorderLayout.CENTER);
+        panel.add(textPanel, BorderLayout.SOUTH);
     }
 }
